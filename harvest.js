@@ -4,12 +4,13 @@
 var scan_complete = false;
 //var url = "http://localhost:8080";
 var url = "http://portalz-a.appspot.com";
+var portals_seen = [];
 
 var startCollecting = function() {
   bounds = map.getBounds();
+  // Reset seen portals
+  portals_seen = [];
   window.addHook('mapDataRefreshEnd', function(data){collectAndMove(bounds)});
-  window.addHook('portalAdded', function(data){addPortal(data)});
-  window.addHook('portalDetailsUpdated', function(data){addDetails(data)});
   scan_complete = false;
   window.mapDataRequest.REFRESH_CLOSE = 3;
   window.mapDataRequest.MOVE_REFRESH = 3;
@@ -19,8 +20,6 @@ var startCollecting = function() {
 var stopCollecting = function() {
   scan_complete = true;
   delete window._hooks['mapDataRefreshEnd'];
-  delete window._hooks['portalAdded'];
-  delete window._hooks['portalDetailsUpdated'];
 }
 
 var move = function(bounds) {
@@ -46,22 +45,18 @@ var collectAndMove = function(bounds) {
       window.mapDataRequest.REFRESH_CLOSE = 300
       window.mapDataRequest.MOVE_REFRESH = 3;
     } else {
+      $.each(window.portals, function(guid, data) {
+        if (portals_seen.indexOf(guid) == -1) {
+          portals_seen.push(guid);
+          addDetails(guid, data.options.data);
+        }
+      });
       move(bounds);
     }
   }
 };
 
-var addPortal = function(data) {
-  //guid = data.portal.options.guid;
-  //portal_data = data.options.data;
-  //portal_data["guid"] = guid;
-  //console.log(portal_data);
-  window.renderPortalDetails(data.portal.options.guid);
-}
-
-var addDetails = function(data) {
-  guid = data.guid;
-  portal_details = data.portalDetails;
+var addDetails = function(guid, portal_details) {
   portal_details["guid"] = guid;
   sendDetailData(portal_details);
 }
