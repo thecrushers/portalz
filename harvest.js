@@ -2,15 +2,23 @@
 // When you are ready, type "startCollecting()"
 
 var scan_complete = false;
-//var url = "http://localhost:8080";
-var url = "http://portalz-a.appspot.com";
+var url = "http://localhost:8080";
+//var url = "http://portalz-a.appspot.com";
 var portals_seen = [];
+var do_owner = true;
+var waiting_for_render = false;
+var waiting;
 
 var startCollecting = function() {
   bounds = map.getBounds();
   // Reset seen portals
   portals_seen = [];
   window.addHook('mapDataRefreshEnd', function(data){collectAndMove(bounds)});
+  if (do_owner === true) {
+    window.addHook('portalDetailsUpdated', function(data){
+      addDetails(data.guid, data.portalDetails);
+    });
+  }
   scan_complete = false;
   window.mapDataRequest.REFRESH_CLOSE = 3;
   window.mapDataRequest.MOVE_REFRESH = 3;
@@ -20,7 +28,7 @@ var startCollecting = function() {
 var stopCollecting = function() {
   scan_complete = true;
   delete window._hooks['mapDataRefreshEnd'];
-}
+};
 
 var move = function(bounds) {
   if (scan_complete === false) {
@@ -42,13 +50,26 @@ var collectAndMove = function(bounds) {
       console.log("Scan complete!!!!!!!");
       stopCollecting();
       // Reset values so IITC stops requesting so often
-      window.mapDataRequest.REFRESH_CLOSE = 300
+      window.mapDataRequest.REFRESH_CLOSE = 300;
       window.mapDataRequest.MOVE_REFRESH = 3;
     } else {
       $.each(window.portals, function(guid, data) {
         if (portals_seen.indexOf(guid) == -1) {
           portals_seen.push(guid);
-          addDetails(guid, data.options.data);
+          console.log("Iterating over: " + guid);
+          if (do_owner === false) {
+            addDetails(guid, data.options.data);
+          } else {
+            // One at a time...
+            waiting = setInterval(function() {
+              if (waiting_for_render === false) {
+                waiting_for_render = true;
+                console.log("Rendering: " + guid);
+                window.renderPortalDetails(guid);
+                clearInterval(waiting);
+              }
+            }, 1000);
+          }
         }
       });
       move(bounds);
@@ -59,7 +80,7 @@ var collectAndMove = function(bounds) {
 var addDetails = function(guid, portal_details) {
   portal_details["guid"] = guid;
   sendDetailData(portal_details);
-}
+};
 
 var sendDetailData = function(data) {
   var xhr = new XMLHttpRequest();
@@ -67,6 +88,6 @@ var sendDetailData = function(data) {
   xhr.setRequestHeader('Content-Type', 'text/plain');
   xhr.send(JSON.stringify(data));
   xhr.onloadend = function () {
-    console.log("Portal details submitted!");
+    waiting_for_render = false;
   };
-}
+};
