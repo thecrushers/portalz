@@ -26,28 +26,6 @@ class MainPage(webapp2.RequestHandler):
             self.redirect(users.create_login_url(self.request.uri))
 
 
-class SubmitPortal(webapp2.RequestHandler):
-    def post(self):
-        content = json.loads(self.request.body)
-        portal = Portal(
-            guid=content.get('guid'),
-            name=content.get('title'),
-            location=ndb.GeoPt(int(content.get("latE6")) / 1000000., int(content.get("lngE6")) / 1000000.),
-            image=content.get('image'),
-            level=int(content.get('level')),
-            resonators=int(content.get('resCount')),
-            health=content.get('health'),
-            team=content.get('team').lower(),
-        )
-        portal.put()
-        self.response.headers.add('Access-Control-Allow-Origin', 'https://www.ingress.com')
-        self.response.write(portal.guid)
-
-    def options(self):
-        self.response.headers.add('Access-Control-Allow-Origin', 'https://www.ingress.com')
-        self.response.write("OK")
-
-
 class SubmitDetails(webapp2.RequestHandler):
     def post(self):
         content = json.loads(self.request.body)
@@ -87,6 +65,5 @@ class Portal(ndb.Model):
 
 application = webapp2.WSGIApplication([
     ('/', MainPage),
-    ('/submit_portal', SubmitPortal),
     ('/submit_details', SubmitDetails)
 ], debug=True)
