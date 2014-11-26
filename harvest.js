@@ -5,7 +5,7 @@ var scan_complete = false;
 var url = "http://localhost:8080";
 //var url = "http://portalz-a.appspot.com";
 var portals_seen = [];
-var do_owner = true;
+var do_owner = false;
 var waiting_for_render = false;
 var waiting;
 var submitter = "bobfromnextdoor";
