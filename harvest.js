@@ -8,6 +8,7 @@ var portals_seen = [];
 var do_owner = true;
 var waiting_for_render = false;
 var waiting;
+var submitter = "bobfromnextdoor";
 
 var startCollecting = function() {
   bounds = map.getBounds();
@@ -79,6 +80,7 @@ var collectAndMove = function(bounds) {
 
 var addDetails = function(guid, portal_details) {
   portal_details["guid"] = guid;
+  portal_details["submitter"] = submitter;
   sendDetailData(portal_details);
 };
 

@@ -14,6 +14,9 @@ JINJA_ENVIRONMENT = jinja2.Environment(
 )
 
 
+ALLOWED_SUBMITTERS = ['bobfromnextdoor']
+
+
 class MainPage(webapp2.RequestHandler):
     def get(self):
         # Checks for active Google account session
@@ -29,18 +32,21 @@ class MainPage(webapp2.RequestHandler):
 class SubmitDetails(webapp2.RequestHandler):
     def post(self):
         content = json.loads(self.request.body)
-        portal = Portal(
-            guid=content.get('guid'),
-            name=content.get('title'),
-            location=ndb.GeoPt(int(content.get("latE6")) / 1000000., int(content.get("lngE6")) / 1000000.),
-            image=content.get('image'),
-            level=int(content.get('level')),
-            resonators=int(content.get('resCount')),
-            owner=content.get('owner'),
-            health=content.get('health'),
-            team=content.get('team').lower(),
-        )
-        portal.put()
+        if content.get('submitter') in ALLOWED_SUBMITTERS:
+            portal = Portal(
+                guid=content.get('guid'),
+                name=content.get('title'),
+                location=ndb.GeoPt(int(content.get("latE6")) / 1000000., int(content.get("lngE6")) / 1000000.),
+                image=content.get('image'),
+                level=int(content.get('level')),
+                resonators=int(content.get('resCount')),
+                owner=content.get('owner'),
+                health=content.get('health'),
+                team=content.get('team').lower(),
+                submitter=content.get('submitter'),
+            )
+            portal.put()
+
         self.response.headers.add('Access-Control-Allow-Origin', 'https://www.ingress.com')
         self.response.write(portal.guid)
 
@@ -60,7 +66,7 @@ class Portal(ndb.Model):
     team        = ndb.StringProperty(indexed=True)
     resonators  = ndb.IntegerProperty()
     tags        = ndb.StringProperty(repeated=True)
-    submitor    = ndb.UserProperty()
+    submitter   = ndb.StringProperty(indexed=True)
     submitted   = ndb.DateTimeProperty(auto_now_add=True)
 
 application = webapp2.WSGIApplication([
