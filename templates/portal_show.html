@@ -1,0 +1,12 @@
+<h1>{{ base.guid }}</h1>
+<h2>{{ base.name }}</h2>
+
+{% for portal in data %}
+    <div>
+        <h3>{{ portal.submitted }}</h3>
+        <div>Team: {{ portal.team }}</div>
+        <div>Health: {{ portal.health }}%</div>
+        <div>Portal level: {{ portal.level }}</div>
+    </div>
+    <hr />
+{% endfor %}

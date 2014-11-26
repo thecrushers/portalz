@@ -21,10 +21,39 @@ class MainPage(webapp2.RequestHandler):
     def get(self):
         # Checks for active Google account session
         user = users.get_current_user()
-
         if user:
-            self.response.headers['Content-Type'] = 'text/plain'
-            self.response.write('Hello, World!')
+            template = JINJA_ENVIRONMENT.get_template('templates/index.html')
+            self.response.write(template.render())
+        else:
+            self.redirect(users.create_login_url(self.request.uri))
+
+
+class PortalPage(webapp2.RequestHandler):
+    def get(self):
+        # Checks for active Google account session
+        user = users.get_current_user()
+        if user:
+            guid = self.request.get('guid')
+            data = Portal.query(Portal.guid == guid).order(-Portal.submitted).fetch()
+            template_values = dict(base=data[0] if len(data) > 0 else None,
+                                   data=data)
+            template = JINJA_ENVIRONMENT.get_template('templates/portal_show.html')
+            self.response.write(template.render(template_values))
+        else:
+            self.redirect(users.create_login_url(self.request.uri))
+
+
+class PortalListPage(webapp2.RequestHandler):
+    def get(self):
+        # Checks for active Google account session
+        user = users.get_current_user()
+        if user:
+            num_portals = Portal.query().count()
+            portals = list(Portal.query(projection=[Portal.guid], distinct=True).fetch(20))
+            template_values = dict(num_portals=num_portals,
+                                   portals=portals)
+            template = JINJA_ENVIRONMENT.get_template('templates/portal_list.html')
+            self.response.write(template.render(template_values))
         else:
             self.redirect(users.create_login_url(self.request.uri))
 
@@ -48,7 +77,7 @@ class SubmitDetails(webapp2.RequestHandler):
             portal.put()
 
         self.response.headers.add('Access-Control-Allow-Origin', 'https://www.ingress.com')
-        self.response.write(portal.guid)
+        self.response.write("OK")
 
     def options(self):
         self.response.headers.add('Access-Control-Allow-Origin', 'https://www.ingress.com')
@@ -70,6 +99,8 @@ class Portal(ndb.Model):
     submitted   = ndb.DateTimeProperty(auto_now_add=True)
 
 application = webapp2.WSGIApplication([
-    ('/', MainPage),
-    ('/submit_details', SubmitDetails)
+    ('/',               MainPage),
+    ('/submit_details', SubmitDetails),
+    ('/portal',         PortalPage),
+    ('/portals',        PortalListPage)
 ], debug=True)

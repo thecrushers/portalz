@@ -1,0 +1,5 @@
+Showing up to 20 portals out of {{ num_portals }} total portals.
+<br />
+{% for portal in portals %}
+    <a href='/portal?guid={{portal.guid}}'>{{ portal.guid }}</a><br />
+{% endfor %}
