@@ -1,0 +1,6 @@
+indexes:
+  - kind: Portal
+    properties:
+    - name: guid
+    - name: submitted
+      direction: desc
