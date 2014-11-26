@@ -7,12 +7,16 @@ threadsafe: true
 handlers:
 - url: /js
   static_dir: static/js
+  secure: optional
 - url: /css
   static_dir: static/css
+  secure: optional
 - url: /img
   static_dir: static/img
+  secure: optional
 - url: /.*
   script: portalz.application
+  secure: optional
 
 libraries:
 - name: webapp2
